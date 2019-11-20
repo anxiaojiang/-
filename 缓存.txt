@@ -1,0 +1,306 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace ClearTool
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboBox1.Text == "Edge")
+            {
+                button1.Enabled = true;
+                button2.Enabled = false;
+                button3.Enabled = false;
+                List<string> edge = new List<string>();
+                edge.Add("历史记录");
+                edge.Add("账号密码");
+                comboBox2.Items.Clear();
+                comboBox2.Items.AddRange(edge.ToArray());
+                comboBox2.SelectedIndex = 0;
+            }
+            else if (comboBox1.Text == "Chrome")
+            {
+                button1.Enabled = false;
+                button2.Enabled = true;
+                button3.Enabled = false;
+                List<string> chrome = new List<string>();
+                chrome.Add("历史记录");
+                chrome.Add("Cookies");
+                chrome.Add("账户密码");
+                chrome.Add("All");
+                comboBox2.Items.Clear();
+                comboBox2.Items.AddRange(chrome.ToArray());
+                comboBox2.SelectedIndex = 0;
+            }
+            else {
+                button1.Enabled = false;
+                button2.Enabled = false;
+                button3.Enabled = true;
+                List<string> ie = new List<string>();
+                ie.Add("历史记录");
+                ie.Add("Cookies");
+                ie.Add("临时文件");
+                ie.Add("表单数据");
+                ie.Add("密码");
+                ie.Add("All");
+                ie.Add("AllandSetting");
+                comboBox2.Items.Clear();
+                comboBox2.Items.AddRange(ie.ToArray());
+                comboBox2.SelectedIndex = 0;
+            }
+        }
+
+        //Edge
+        private void button1_Click(object sender, EventArgs e)
+        {
+            //关闭Edge
+            foreach (System.Diagnostics.Process p in System.Diagnostics.Process.GetProcessesByName("MicrosoftEdge"))
+            {
+                try
+                {
+                    p.Kill();
+                }
+                catch (Exception msg)
+                {
+                    MessageBox.Show(msg.Message + "请手动关闭浏览器");
+                }
+
+                p.WaitForExit();
+                p.Dispose();
+            }
+            string username = Environment.UserName;
+            string path = @"C:\Users\"+ username + @"\AppData\Local\Packages\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\AC\";
+            try
+            {
+                if (!string.IsNullOrEmpty(comboBox2.Text))
+                {
+                    if (comboBox2.Text == "历史记录")
+                    {
+                        //历史记录
+                        var files = Directory.GetDirectories(path,"#!*").ToList();
+                        for (int i=0;i< files.Count;i++)
+                        {
+                            Directory.Delete(files[i],true);
+                        }
+                    }
+                    else
+                    {
+                        //账户密码，和IE 一样
+                        ShellExecute(IntPtr.Zero, "open", "rundll32.exe", " InetCpl.cpl,ClearMyTracksByProcess 32", "", ShowCommands.SW_HIDE);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("请选择");
+                }
+
+
+            }
+            catch (Exception msg)
+            {
+                MessageBox.Show(msg.Message);
+            }
+            finally
+            {
+                MessageBox.Show("Edge is cleared successfully");
+            }
+        }
+        //Chrome
+        private void button2_Click(object sender, EventArgs e)
+        {
+            //关闭Chrome
+            foreach (System.Diagnostics.Process p in System.Diagnostics.Process.GetProcessesByName("chrome"))
+            {
+                try {
+                    p.Kill();
+                } catch (Exception msg)
+                {
+                    MessageBox.Show(msg.Message+"请手动关闭浏览器");
+                }
+                
+                p.WaitForExit();
+                p.Dispose();
+            }
+            string path = @"C:\Users\" + Environment.UserName + @"\AppData\Local\Google\Chrome\User Data\Default\";
+            try
+            {
+                if (!string.IsNullOrEmpty(comboBox2.Text))
+                {
+                    if (comboBox2.Text == "历史记录")
+                    {
+                        //历史记录
+                        var files = Directory.GetFiles(path, "History*").ToList();
+                        for (int i = 0; i < files.Count; i++)
+                        {
+                            File.Delete(files[i]);
+                        }
+                    }
+                    else if (comboBox2.Text == "Cookies")
+                    {
+                        //Cookies
+                        var files = Directory.GetFiles(path, "*Cookies*").ToList();
+                        for (int i = 0; i < files.Count; i++)
+                        {
+                            File.Delete(files[i]);
+                        }
+                    }
+                    else if (comboBox2.Text == "账户密码")
+                    {
+                        //账户密码
+                        var files = Directory.GetFiles(path, "Login*").ToList();
+                        for (int i = 0; i < files.Count; i++)
+                        {
+                            File.Delete(files[i]);
+                        }
+                    }
+                    else
+                    {
+                        //All
+                        var files = Directory.GetFiles(path, "History*").ToList();
+                        for (int i = 0; i < files.Count; i++)
+                        {
+                            File.Delete(files[i]);
+                        }
+                        files = Directory.GetFiles(path, "*Cookies*").ToList();
+                        for (int i = 0; i < files.Count; i++)
+                        {
+                            File.Delete(files[i]);
+                        }
+                        files = Directory.GetFiles(path, "Login*").ToList();
+                        for (int i = 0; i < files.Count; i++)
+                        {
+                            File.Delete(files[i]);
+                        }
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("请选择");
+                }
+
+
+            }
+            catch (Exception msg)
+            {
+                MessageBox.Show(msg.Message);
+            }
+            finally
+            {
+                MessageBox.Show("Chrome is cleared successfully");
+            }
+        }
+        //IE
+        [DllImport("shell32.dll")]
+        static extern IntPtr ShellExecute(IntPtr hwnd, string lpOperation, string lpFile, string lpParameters, string lpDirectory, ShowCommands nShowCmd);
+        public enum ShowCommands : int
+        {
+            SW_HIDE = 0,
+            SW_SHOWNORMAL = 1,
+            SW_NORMAL = 1,
+            SW_SHOWMINIMIZED = 2,
+            SW_SHOWMAXIMIZED = 3,
+            SW_MAXIMIZE = 3,
+            SW_SHOWNOACTIVATE = 4,
+            SW_SHOW = 5,
+            SW_MINIMIZE = 6,
+            SW_SHOWMINNOACTIVE = 7,
+            SW_SHOWNA = 8,
+            SW_RESTORE = 9,
+            SW_SHOWDEFAULT = 10,
+            SW_FORCEMINIMIZE = 11,
+            SW_MAX = 11
+        }
+        private void button3_Click(object sender, EventArgs e)
+        {
+            //关闭IE
+            foreach (System.Diagnostics.Process p in System.Diagnostics.Process.GetProcessesByName("iexplore"))
+            {
+                try
+                {
+                    p.Kill();
+                }
+                catch (Exception msg)
+                {
+                    MessageBox.Show(msg.Message + "请手动关闭浏览器");
+                }
+
+                p.WaitForExit();
+                p.Dispose();
+            }
+            try
+            {
+                if (!string.IsNullOrEmpty(comboBox2.Text))
+                {
+                    if (comboBox2.Text == "历史记录")
+                    {
+                        //历史记录
+                        ShellExecute(IntPtr.Zero, "open", "rundll32.exe", " InetCpl.cpl,ClearMyTracksByProcess 1", "", ShowCommands.SW_HIDE);
+                    }
+                    else if (comboBox2.Text == "Cookies")
+                    {
+                        //Cookies
+                        ShellExecute(IntPtr.Zero, "open", "rundll32.exe", " InetCpl.cpl,ClearMyTracksByProcess 2", "", ShowCommands.SW_HIDE);
+                    }
+                    else if (comboBox2.Text == "临时文件")
+                    {
+                        //Internet临时文件
+                        ShellExecute(IntPtr.Zero, "open", "rundll32.exe", " InetCpl.cpl,ClearMyTracksByProcess 8", "", ShowCommands.SW_HIDE);
+                    }
+                    else if (comboBox2.Text == "表单数据")
+                    {
+                        //表单数据
+                        ShellExecute(IntPtr.Zero, "open", "rundll32.exe", " InetCpl.cpl,ClearMyTracksByProcess 16", "", ShowCommands.SW_HIDE);
+                    }
+                    else if (comboBox2.Text == "密码")
+                    {
+                        //Passwords 
+                        ShellExecute(IntPtr.Zero, "open", "rundll32.exe", " InetCpl.cpl,ClearMyTracksByProcess 32", "", ShowCommands.SW_HIDE);
+                    }
+                    else if (comboBox2.Text == "All")
+                    {
+                        //All  
+                        ShellExecute(IntPtr.Zero, "open", "rundll32.exe", " InetCpl.cpl,ClearMyTracksByProcess 255", "", ShowCommands.SW_HIDE);
+                    }
+                    else
+                    {
+                        //All – “Also delete files and settings stored by add-ons”
+                        ShellExecute(IntPtr.Zero, "open", "rundll32.exe", " InetCpl.cpl,ClearMyTracksByProcess 4351", "", ShowCommands.SW_HIDE);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("请选择");
+                }
+                
+                
+            }
+            catch (Exception msg)
+            {
+                MessageBox.Show(msg.Message);
+            }
+            finally
+            {
+                MessageBox.Show("IE is cleared successfully");
+            }
+        }
+
+        
+    }
+}
